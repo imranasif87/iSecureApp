@@ -1,0 +1,265 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <!-- Include meta tag to ensure proper rendering and touch zooming -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Include jQuery Mobile stylesheets -->
+    <link href="css/themes/Color.css" rel="stylesheet" />
+    <link href="css/themes/jquery.mobile.icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
+    <!-- Include the jQuery library -->
+    <script src="js/jquery-1.11.3.min.js"></script>
+    <!-- Include the jQuery Mobile library -->
+    <script src="js/jquery.mobile-1.4.5.min.js"></script>
+    <!--<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCvTt4mGpTjYcyLaiMFM0jyJQ9fKgwwO80&amp;libraries=places"></script>-->
+    <script src="http://maps.googleapis.com/maps/api/js?sensor=false&amp;libraries=places"></script>
+    <script src="js/jquery.geocomplete.js"></script>
+    <script src="js/logger.js"></script>
+    <style>
+        #map-page, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+        }
+
+        ::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+            color: #e0dada;
+        }
+    </style>
+</head>
+<body>
+    <div data-role="page" id="map-page" data-url="map-page" data-theme="c">
+        <div data-role="header">
+            <h1>Welcome to ISecure App</h1>
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="iReacedAdmin.html" rel="external" data-transition="slidefade" data-icon="search">IReached</a></li>
+                    <li><a href="SpyEye.html" rel="external" data-transition="slidefade" data-icon="eye">SpyEye</a></li>
+                    <li><a href="AntiTheft.html" rel="external" data-transition="slidefade" data-icon="user">AntiTheft</a></li>
+                    <li><a href="index.html" rel="external" data-transition="slidefade" data-icon="power">Signout</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div data-role="main" class="ui-content">
+            <form>
+                <input type="search" name="search-5" id="geocomplete" value="" placeholder="Search Location...">
+                <fieldset class="ui-grid-b">
+                    <div class="ui-block-a"><button class="ui-btn ui-mini ui-corner-all" id="btnStart">Start</button></div>
+                    <div class="ui-block-b"><input type="number" disabled="disabled" id="txtStartLat" placeholder="Latitude"></div>
+                    <div class="ui-block-c"><input type="number" disabled="disabled" id="txtStartLong" placeholder="Longitude"></div>
+                </fieldset>
+                <fieldset class="ui-grid-b">
+                    <div class="ui-block-a"><button class="ui-btn ui-mini ui-corner-all" id="btnEnd">End</button></div>
+                    <div class="ui-block-b"><input type="number" disabled="disabled" id="txtEndLat" placeholder="Latitude"></div>
+                    <div class="ui-block-c"><input type="number" disabled="disabled" id="txtEndLong" placeholder="Longitude"></div>
+                </fieldset>
+                <fieldset class="ui-grid-b">
+                    <div class="ui-block-a"><label>Time in Minutes</label></div>
+                    <div class="ui-block-b"><input type="number" id="txtTime" placeholder="Time"></div>
+                    <div class="ui-block-c"><button id="btnSave" class="ui-btn ui-corner-all">Save</button></div>
+                </fieldset>
+
+                <div class="details" style="display:none;">
+                    <input id="realLat" name="lat" type="text" value="">
+                    <input id="realLng" name="lng" type="text" value="">
+                    <input name="formatted_address" type="text" value="">
+                </div>
+            </form>
+
+            <button id="center" style="display:none;">.geocomplete("map").setCenter()</button>
+            <div id="map" class="map_canvas" style="width:100%;height:430px;">
+            </div>
+        </div>
+
+        <div data-role="footer">
+            <h1>@Copyright 2019</h1>
+        </div>
+    </div>
+    <script>
+        /*
+  * Google Maps documentation: http://code.google.com/apis/maps/documentation/javascript/basics.html
+  * Geolocation documentation: http://dev.w3.org/geo/api/spec-source.html
+  */
+        $(document).ready(function () {
+            var createStatement = "CREATE TABLE IF NOT EXISTS app_ireached (id INTEGER PRIMARY KEY AUTOINCREMENT, startlatitude TEXT, startlongitude TEXT, endlatitude TEXT, endlongitude TEXT, rtime TEXT)";
+            var insertStatement = "INSERT INTO app_ireached (startlatitude, startlongitude, endlatitude, endlongitude, rtime) VALUES (?, ?, ?, ?, ?)";
+            var updateStatement = "UPDATE app_ireached SET startlatitude = ?, startlongitude = ?, endlatitude = ?, endlongitude = ?, rtime = ? where id = 1";
+            var selectStatement = "Select * from app_ireached";
+            var dropStatement = "DROP TABLE app_ireached";
+            var db = openDatabase("SecureDb", "1.0", "App I Secure", 200000);  // Open SQLite Database
+            var dataset;
+            var DataType;
+
+            function dropTable() // Function Call when Drop Button Click.. Talbe will be dropped from database.
+            {
+                db.transaction(function (tx) { tx.executeSql(dropStatement, [], null, onError); });
+            }
+
+            //dropTable();
+
+            function initDatabase()  // Function Call When Page is ready.
+            {
+                try {
+                    if (!window.openDatabase)  // Check browser is supported SQLite or not.
+                    {
+                        ShowMessage('Databases are not supported in this mobile.');
+                    }
+                    else {
+                        // alert('db Initialized.')
+                        createTable();  // If supported then call Function for create table in SQLite
+                    }
+                }
+                catch (e) {
+                    if (e == 2) {
+                        // Version number mismatch.
+                        ShowMessage("Invalid database version.");
+                    } else {
+                        ShowMessage("Unknown error " + e + ".");
+                    }
+                    return;
+                }
+            }
+
+            initDatabase(); // call to initialize database
+
+
+            function ShowRecord() {
+                db.transaction(function (tx) {
+                    tx.executeSql(selectStatement, [], function (tx, result) {
+                        dataset = result.rows;
+                        if (dataset.length == 0) {
+                            return false;
+                        }
+                        else {
+                            return true;
+                            //alert('already exist');
+                        }
+                    });
+                });
+            }
+
+            //ShowRecord();
+
+            var defaultLatLng = new google.maps.LatLng(34.0983425, -118.3267434); 
+            if (navigator.geolocation) {
+                function success(pos) {
+                    // Location found, show map with these coordinates
+                    defaultLatLng = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+                    $('#realLat').val(pos.coords.latitude);
+                    $('#realLng').val(pos.coords.longitude);
+                    $("#center").trigger("click");
+                }
+                function fail(error) {
+                    //drawMap(defaultLatLng);  // Failed to find location, show default map
+                    $("#center").trigger("click");
+                }
+                // Find the users current position.  Cache the location for 5 minutes, timeout after 6 seconds
+                navigator.geolocation.getCurrentPosition(success, fail, { maximumAge: 500000, enableHighAccuracy: true, timeout: 6000 });
+            } else {
+                drawMap(defaultLatLng);  // No geolocation support, show default map
+            }
+
+            $("#geocomplete").geocomplete({
+                map: ".map_canvas",
+                details: ".details"
+            });
+
+            $("#center").click(function () {
+                var map = $("#geocomplete").geocomplete("map"),
+                  center = defaultLatLng;
+
+                map.setCenter(center);
+                map.setZoom(16);
+
+                $("#geocomplete").geocomplete({
+                    map: ".map_canvas",
+                    details: ".details"
+                });
+            });
+
+            /// Start button coding
+            $('#btnStart').click(function () {
+                var lat = $('#realLat').val();
+                var lng = $('#realLng').val();
+
+                $('#txtStartLat').val(parseFloat(lat).toFixed(5));
+                $('#txtStartLong').val(parseFloat(lng).toFixed(5));
+                return false;
+            });
+
+
+            // End button Coding
+            $('#btnEnd').click(function () {
+                if ($('#txtStartLat').val() != "" && $('#txtStartLong').val()) {
+
+                    var lat = $('#realLat').val();
+                    var lng = $('#realLng').val();
+
+                    if ($('#txtStartLat').val() != lat && $('#txtStartLong').val() != parseFloat(lng).toFixed(5)) {
+                        $('#txtEndLat').val(parseFloat(lat).toFixed(5));
+                        $('#txtEndLong').val(parseFloat(lng).toFixed(5));
+                    }
+                    else {
+                        ShowMessage('Start and end should be different.');
+                    }
+                }
+                else {
+                    ShowMessage('Please enter start location.');
+                }
+                return false;
+            });
+            // Save Button coding
+            $('#btnSave').click(function () {
+                if ($('#txtStartLat').val() != "" && $('#txtStartLong').val() && $('#txtEndLat').val() != "" && $('#txtEndLong').val() && $('#txtTime').val() != "") {
+                    db.transaction(function (tx) {
+                        tx.executeSql(selectStatement, [], function (tx, result) {
+                            dataset = result.rows;
+                            if (dataset.length == 0) {
+                                db.transaction(function (tx) {
+                                    tx.executeSql(insertStatement, [$('#txtStartLat').val(), $('#txtStartLong').val(), $('#txtEndLat').val(), $('#txtEndLong').val(), $('#txtTime').val()], onSuccess, onError);
+                                });
+                            }
+                            else {
+                                db.transaction(function (tx) {
+                                    tx.executeSql(updateStatement, [$('#txtStartLat').val(), $('#txtStartLong').val(), $('#txtEndLat').val(), $('#txtEndLong').val(), $('#txtTime').val()], onSuccess, onError);
+                                });
+                            }
+                        });
+                    });
+                }
+                else {
+                    ShowMessage('Please enter all fields.');
+                }
+                return false;
+            });
+
+            function onError(tx, error) // Function for Hendeling Error...
+            {
+                ShowMessage("dbError: " + error.message);
+            }
+            function onSuccess(tx, error) // Function for Hendeling Success...
+            {
+                ShowMessage('Location updated successfully.');
+            }
+            function createTable()  // Function for Create Table in SQLite.
+            {
+                db.transaction(function (tx) { tx.executeSql(createStatement, [], null, onError); });
+            }
+            ///// Message function
+            function ShowMessage(message)
+            {
+                $.mobile.loading('show',
+                    {
+                        theme: "a", text: (message),
+                        textonly: true, textVisible: true
+                    });
+                setTimeout(function () {
+                    $.mobile.loading('hide');
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>

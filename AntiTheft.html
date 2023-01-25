@@ -1,0 +1,327 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <!-- Include meta tag to ensure proper rendering and touch zooming -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Include jQuery Mobile stylesheets -->
+    <link href="css/themes/Color.css" rel="stylesheet" />
+    <link href="css/themes/jquery.mobile.icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
+    <!-- Include the jQuery library -->
+    <script src="js/jquery-1.11.3.min.js"></script>
+    <!-- Include the jQuery Mobile library -->
+    <script src="js/jquery.mobile-1.4.5.min.js"></script>
+
+    <style>
+        ::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+            color: #e0dada;
+        }
+    </style>
+</head>
+<body>
+
+    <div data-role="page" id="pageone" data-theme="c">
+        <div data-role="header">
+            <h1>Welcome to ISecure App</h1>
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="iReacedAdmin.html" rel="external" data-transition="slidefade" data-icon="search">IReached</a></li>
+                    <li><a href="SpyEye.html" rel="external" data-transition="slidefade" data-icon="eye">SpyEye</a></li>
+                    <li><a href="AntiTheft.html" rel="external" data-transition="slidefade" data-icon="user">AntiTheft</a></li>
+                    <li><a href="index.html" rel="external" data-transition="slidefade" data-icon="power">Signout</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div data-role="main" class="ui-content">
+            <a href="#dialogEmergency" data-rel="popup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-plus ui-btn-icon-left ui-btn-c" data-position-to="window"> Add Emergency Number</a>
+            <a href="#dialogTheft" data-rel="popup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-plus ui-btn-icon-left ui-btn-c" data-position-to="window">Add Your SIM ID</a>
+
+            <div data-role="popup" id="dialogTheft">
+                <a href="#" data-role="button" data-theme="a" onclick="CloseAllTheft()" data-icon="delete" data-iconpos="notext" class="ui-btn-left">Close</a>
+                <div data-role="header">
+                    <h1>Anti-Theft</h1>
+                </div>
+                <div data-role="main" class="ui-content">
+                    <input class="required" type="text" name="txtTheftNumber" id="txtTheftNumber"
+                           placeholder="Enter Sim No">
+                    <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-plus ui-btn-icon-left ui-btn-c" id="btnTheftAddNum">Add Your SIM ID</a>
+                    <a onclick="OpenTheft()" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-bullets ui-btn-icon-left ui-btn-c" id="btnViewAllTheft">
+                        View All
+                    </a>
+                    <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-delete ui-btn-icon-left ui-btn-c" id="btnTheftDeleteAll">Delete All</a>
+                </div>
+            </div>
+            <div data-role="popup" id="dialogEmergency">
+                <a href="#" data-role="button" data-theme="a" onclick="CloseAllEmergency()" data-icon="delete" data-iconpos="notext" class="ui-btn-left">Close</a>
+                <div data-role="header">
+                    <h1>Add Emergency Number</h1>
+                </div>
+                <div data-role="main" class="ui-content">
+                    <input class="required" type="number" name="number" id="number"
+                           placeholder="Enter Sim ID">
+                    <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-plus ui-btn-icon-left ui-btn-c" id="btnAddNum">Add Number</a>
+                    <a onclick="Open()" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-bullets ui-btn-icon-left ui-btn-c" id="btnViewAll">
+                        View All
+                    </a>
+                    <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-delete ui-btn-icon-left ui-btn-c" id="btnDeleteAll">Delete All</a>
+                </div>
+            </div>
+            <div data-role="popup" id="dialogEmergencyAll">
+                <a href="#" onclick="return MainScreen();" data-role="button" data-theme="a" data-icon="back" data-iconpos="notext" class="ui-btn-left"></a>
+                <div data-role="header">
+                    <h1>Show Emergency Number</h1>
+                </div>
+                <div data-role="main" class="ui-content">
+
+
+                    <p id="showEmergency"></p>
+                </div>
+            </div>
+
+            <!-- Add Sim section -->
+            <div data-role="popup" id="dialogTheftAll">
+                <a href="#" onclick="return MainScreenTheft();" data-role="button" data-theme="a" data-icon="back" data-iconpos="notext" class="ui-btn-left"></a>
+                <div data-role="header">
+                    <h1>Show SIM Number</h1>
+                </div>
+                <div data-role="main" class="ui-content">
+
+
+                    <p id="showTheft"></p>
+                </div>
+            </div>
+        </div>
+
+        <div data-role="footer" data-position="fixed">
+            <h1>@Copyright 2019</h1>
+        </div>
+    </div>
+
+    <script>
+        function Open() {
+            $('#dialogEmergency').popup('close');
+            $("#dialogEmergency").bind({
+                popupafterclose: function (event, ui) {
+                    $("#dialogEmergencyAll").popup("open");
+                }
+            });
+        }
+        function MainScreen() {
+            $('#dialogEmergencyAll').popup('close');
+            $("#dialogEmergencyAll").bind({
+                popupafterclose: function (event, ui) {
+                    $("#dialogEmergency").popup("open");
+                }
+            });
+            return false;
+        }
+        function CloseAllEmergency() {
+            $('#dialogEmergency').unbind();
+            $('#dialogEmergencyAll').popup('close');
+            $('#dialogEmergency').popup('close');
+
+        }
+
+        function OpenTheft() {
+            $('#dialogTheft').popup('close');
+            $("#dialogTheft").bind({
+                popupafterclose: function (event, ui) {
+                    $("#dialogTheftAll").popup("open");
+                }
+            });
+        }
+        function MainScreenTheft() {
+            $('#dialogTheftAll').popup('close');
+            $("#dialogTheftAll").bind({
+                popupafterclose: function (event, ui) {
+                    $("#dialogTheft").popup("open");
+                }
+            });
+            return false;
+        }
+        function CloseAllTheft() {
+            $('#dialogTheft').unbind();
+            $('#dialogTheftAll').popup('close');
+            $('#dialogTheft').popup('close');
+
+        }
+
+        $(document).ready(function () {
+            var createStatement = "CREATE TABLE IF NOT EXISTS app_Emergency (id INTEGER PRIMARY KEY AUTOINCREMENT, EmergencyNumber TEXT)";
+            var insertStatement = "INSERT INTO app_Emergency (EmergencyNumber) VALUES (?)";
+            var deleteSatement = "Delete from app_Emergency"
+            var selectStatement = "Select * from app_Emergency";
+            var dropStatement = "DROP TABLE app_Emergency";
+
+            var createStatementTheft = "CREATE TABLE IF NOT EXISTS app_Theft (id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, SIMID TEXT)";
+            var insertStatementTheft = "INSERT INTO app_Theft (Name, SIMID) VALUES (?, ?)";
+            var deleteSatementTheft = "Delete from app_Theft"
+            var selectStatementTheft = "Select * from app_Theft";
+            var dropStatementTheft = "DROP TABLE app_Theft";
+
+            var db = openDatabase("SecureDb", "1.0", "App I Secure", 200000);  // Open SQLite Database
+            var dataset;
+            var DataType;
+            var success;
+
+            function dropTable() // Function Call when Drop Button Click.. Talbe will be dropped from database.
+            {
+                //db.transaction(function (tx) { tx.executeSql(dropStatement, [], null, onError); });
+                db.transaction(function (tx) { tx.executeSql(dropStatementTheft, [], null, onError); });
+            }
+
+            function initDatabase()  // Function Call When Page is ready.
+            {
+                try {
+                    if (!window.openDatabase)  // Check browser is supported SQLite or not.
+                    {
+                        ShowMessage('Databases are not supported in this mobile.');
+                    }
+                    else {
+                        // alert('db Initialized.')
+                        createTable();  // If supported then call Function for create table in SQLite
+                    }
+                }
+                catch (e) {
+                    if (e == 2) {
+                        // Version number mismatch.
+                        ShowMessage("Invalid database version.");
+                    } else {
+                        ShowMessage("Unknown error " + e + ".");
+                    }
+                    return;
+                }
+            }
+
+            function insertRecord() {
+                db.transaction(function (tx) {
+                    tx.executeSql(insertStatement, [$('#number').val()], onSuccess, onError);
+                });
+            }
+
+            initDatabase(); // call to initialize database
+
+            ///////////////////////////////////////////////////////////////////
+            ////// Emergency Section
+
+            $('#btnAddNum').click(function () {
+                if ($('#number').val() != "" && $('#number').val().length == 11) {
+                    success = "Inserted Successfully."
+                    insertRecord();
+                }
+                else {
+                    ShowMessage("Enter valid.");
+                }
+            });
+            $('#btnViewAll').click(function () {
+                db.transaction(function (tx) {
+                    tx.executeSql(selectStatement, [], function (tx, result) {
+                        dataset = result.rows;
+                        //alert(dataset.length);
+                        var data = "";
+                        if (dataset.length == 0) {
+                            $('#showEmergency').html('There is no data to show.');
+                        }
+                        else {
+                            for (var i = 0; i < dataset.length; i++) {
+                                data += 'Number: ' + result.rows.item(i).EmergencyNumber + '<br /><br />';
+                            }
+                            $('#showEmergency').html(data);
+                        }
+                    });
+                });
+            });
+            $('#btnDeleteAll').click(function () {
+                success = "Record Deleted.";
+                db.transaction(function (tx) {
+                    tx.executeSql(deleteSatement, [], onSuccess, onError);
+                });
+            });
+            ///////////////////////////////////////////////////////////////////
+            ////// Theft Section
+
+            $('#btnTheftAddNum').click(function () {
+                if ($('#txtTheftNumber').val() != "") {
+                    success = "Inserted Successfully."
+                    db.transaction(function (tx) {
+                        tx.executeSql(selectStatementTheft, [], function (tx, result) {
+                            dataset = result.rows;
+                            var data = "";
+                            if (dataset.length == 0) {
+                                var ID = ((Math.random() * 100000000000000000) + 10000000000000000).toString();
+                                db.transaction(function (tx) {
+                                    tx.executeSql(insertStatementTheft, [$('#txtTheftNumber').val(), ID], onSuccess, onError);
+                                });
+                            }
+                            else {
+                                var ID = result.rows.item(0).SIMID;
+                                db.transaction(function (tx) {
+                                    tx.executeSql(insertStatementTheft, [$('#txtTheftNumber').val(), ID], onSuccess, onError);
+                                });
+                            }
+                        });
+                    });
+
+                }
+                else {
+                    ShowMessage("Enter valid.");
+                }
+            });
+            $('#btnViewAllTheft').click(function () {
+                db.transaction(function (tx) {
+                    tx.executeSql(selectStatementTheft, [], function (tx, result) {
+                        dataset = result.rows;
+                        var data = "";
+                        if (dataset.length == 0) {
+                            $('#showTheft').html('There is no data to show.');
+                        }
+                        else {
+                            for (var i = 0; i < dataset.length; i++) {
+                                data += 'ID: ' + result.rows.item(i).SIMID + '<br />';
+                                data += 'Name: ' + result.rows.item(i).Name + '<br /><br />';
+                            }
+                            $('#showTheft').html(data);
+                        }
+                    });
+                });
+            });
+            $('#btnTheftDeleteAll').click(function () {
+                success = "Record Deleted.";
+                db.transaction(function (tx) {
+                    tx.executeSql(deleteSatementTheft, [], onSuccess, onError);
+                });
+            });
+            ///////////////////////////////////////////////////////////////////
+            function onError(tx, error) // Function for Hendeling Error...
+            {
+                ShowMessage("dbError: " + error.message);
+            }
+            function onSuccess(tx, error) // Function for Hendeling Success...
+            {
+                $('#txtTheftNumber').val("");
+                $('#number').val("");
+                ShowMessage(success);
+            }
+            function createTable()  // Function for Create Table in SQLite.
+            {
+                db.transaction(function (tx) { tx.executeSql(createStatement, [], null, onError); });
+                db.transaction(function (tx) { tx.executeSql(createStatementTheft, [], null, onError); });
+            }
+            ///// Message function
+            function ShowMessage(message) {
+                $.mobile.loading('show',
+                    {
+                        theme: "a", text: (message),
+                        textonly: true, textVisible: true
+                    });
+                setTimeout(function () {
+                    $.mobile.loading('hide');
+                }, 2000);
+            }
+        });
+    </script>
+
+</body>
+</html>

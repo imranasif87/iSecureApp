@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+</head>
+<body>
+
+
+    <!-- Include the jQuery library -->
+    <script src="js/jquery-1.11.3.min.js"></script>
+
+    <script src="http://maps.googleapis.com/maps/api/js?sensor=false&amp;libraries=geometry"></script>
+
+    <script>
+        // Try HTML5 geolocation.
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                var pos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+
+                //alert(pos.lat + ' ' + pos.lng);
+                console.log(pos.lat + ' ' + pos.lng);
+                var desitination = new google.maps.LatLng(pos.lat, pos.lng);
+                var _kCord = new google.maps.LatLng(33.612134, 73.074094);
+                
+
+                console.log(google.maps.geometry.spherical.computeDistanceBetween(_kCord, desitination));
+            }, function () {
+                alert('error');
+            });
+        }
+    </script>
+</body>
+</html>
